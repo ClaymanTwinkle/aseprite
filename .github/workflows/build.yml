@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest, macos-13, ubuntu-latest]
         build_type: [RelWithDebInfo, Debug]
         ui: [gui, cli]
         scripting: [lua, noscripts]
@@ -73,7 +73,7 @@ jobs:
           export enable_scripting=off
         fi
 
-        if [[ "${{ runner.os }}" == "macOS" ]] ; then
+        if [[ "${{ matrix.os }}" == "macos-latest" ]] ; then
           export skia_arch=arm64
         else
           export skia_arch=x64
@@ -114,6 +114,15 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: aseprite-windows-${{ matrix.build_type }}
+        path: |
+          build/bin/
+          !build/bin/gen/**/*
+        retention-days: 7
+    - name: Upload macOS Artifact
+      if: runner.os == 'macOS' && matrix.ui == 'gui' && matrix.scripting == 'lua' && matrix.build_type == 'RelWithDebInfo'
+      uses: actions/upload-artifact@v4
+      with:
+        name: aseprite-macos-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}-${{ matrix.build_type }}
         path: |
           build/bin/
           !build/bin/gen/**/*
